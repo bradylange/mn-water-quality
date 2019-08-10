@@ -1,0 +1,342 @@
+# Developer: Brady Lange
+# Applied Regression Analysis 
+# 10/26/18
+
+# Notes:
+# - Use cbind() function to combine the criterias together
+
+# Set-up workplace 
+setwd("C:/Users/w3110657/Downloads")
+
+# Load libraries
+library(fmsb)
+library(lmtest)
+library(readxl)
+
+# Load data 
+Patient <- read_excel("Patient.xlsx")
+attach(Patient)
+
+# Create regression model
+reg <- lm(Patient$Y ~ Patient$X1 + Patient$X2 + Patient$X3)
+summary(reg)
+
+# Criteria: Chose the highest 'Adjusted R-Squared' and the lowest 'SSE' 
+# [Factors:]          [Adjusted R-Squared:]             [Sum of Squares due to Error:]
+# X1                  0.6103                            10.76
+reg <- lm(Patient$Y ~ Patient$X1)
+summary(reg)
+# X2                  0.3491                            13.91
+reg <- lm(Patient$Y ~ Patient$X2)
+summary(reg)
+# X3                  0.4022                            13.33
+reg <- lm(Patient$Y ~ Patient$X3)
+summary(reg)
+# X1 + X2             0.6389                            10.36
+reg <- lm(Patient$Y ~ Patient$X1 + Patient$X2)
+summary(reg)
+# X1 + X3             0.661                             10.04
+reg <- lm(Patient$Y ~ Patient$X1 + Patient$X3)
+summary(reg)
+# X2 + X3             0.4437                            12.86
+reg <- lm(Patient$Y ~ Patient$X2 + Patient$X3)
+summary(reg)
+# X1 + X2 + X3        0.6595                            10.06
+reg <- lm(Patient$Y ~ Patient$X1 + Patient$X2 + Patient$X3)
+summary(reg)
+
+# Multicollinearity:
+VIF(reg)
+# Add the interaction - X1 * X3 to the model
+reg <- lm(Patient$Y ~ Patient$X1 + Patient$X3 + Patient$X1 * Patient$X3)
+summary(reg)
+# Adjusted R-Squared: 0.6625 
+# Final model
+
+# Plot the regression 
+plot(reg)
+
+# Correlation matrix 
+pairs(Patient)
+
+# Run Shapiro and BP tests to check if a transformation of Y or X's is needed
+bptest(reg)
+shapiro.test(Patient$X2)
+
+# Interactions:
+# X1 + X2 + X3 + X1 * X2
+# X1 + X2 + X3 + X1 * X3
+# X1 + X2 + X3 + X2 * X3
+# X1 + X2 + X3 + X1 * X2 + X2 * X3
+# X1 + X2 + X3 + X2 * X3 + X1 * X3
+# X1 + X2 + X3 + X1 * X2 + X1 * X3 + X2 * X3
+
+# Interaction:        [R^2:]      [SSE:]
+# X1 * X3             0.6625      10.01
+
+# Check if the individual variables are significant to the model:
+# Intercept:
+# H0: B0 = 0 vs. HA: B0 != 0 
+# p-value = 0.0944
+#         > 0.05
+# Fail to reject H0 
+
+# Anxiety Level:
+# H0: B3 = 0 vs. HA: B3 != 0 
+# p-value = 0.7810 > 0.05
+# Fail to reject H0
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Libraries:
+install.packages("leaps")
+library(leaps)
+
+# Malloys Cp:
+# p = # of B's
+
+# Variable:       How Many B's:             Cp:             R^2:            SSEp:
+# X1              2                 
+# X2              2
+# X3              2
+# X1 + X2         3
+# X1 + X3         3
+# X2 + X3         3
+# X1 + X2 + X3    4                         4
+
+# Cp value should be near the amount of B's
+# Select best model based upon the columns Cp, R^2, and SSEp (Multiple criteria)
+
+# Convert data to a data frame
+df <- as.data.frame(Patient)
+# Leaps
+leaps(x = df[ , 2:4], y = df[ , 1])
+# ---------------------------------------------------------------------------------------------------------------------
+
+# PRESS Statistic
+install.packages("DAAG")
+library(DAAG)
+
+# Convert data to a data frame type
+Patient <- as.data.frame(Patient)
+
+# Smallest PRESS value is the best model
+# Variable:                     PRESS:
+# X1                            5569.562
+# X2                            9254.489
+# X3                            8451.432
+# X1 + X2                       5235.192
+# X1 + X3                       4902.751                      (Best model from PRESS statistic)
+# X1 + X3 + X1 * X3             4911.023                      (Interaction from best model)
+# X2 + X3                       8115.912
+# X1 + X2 + X3                  5057.886
+
+# X1
+reg <- lm(Patient[ , 1] ~ Patient[ , 2])
+press(reg)
+# X2
+reg <- lm(Patient[ , 1] ~ Patient[ , 3])
+press(reg)
+# X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 4])
+press(reg)
+# X1 + X2
+reg <- lm(Patient[ , 1] ~ Patient[ , 2] + Patient[ , 3])
+press(reg)
+# X1 + X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 2] + Patient[ , 4])
+press(reg)
+# X2 + X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 3] + Patient[ , 4])
+press(reg)
+# X1 + X2 + X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 2] + Patient[ , 3] + Patient[ , 4])
+press(reg)
+# Test interaction of best model:
+# X1 + X3 + X1 * X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 2] + Patient[ , 4] + Patient[ , 2] * Patient[ , 4])
+press(reg)
+
+
+# AIC (Akaike Information Criterion) & BIC (Bayesian Information Criterion)
+
+# Smallest AIC and BIC values is the best model
+# [Variable:]                   [AIC:]                        [BIC:]
+# X1                            353.0717                      358.5577
+# X2                            376.6735                      382.1595
+# X3                            372.7561                      378.242
+# X1 + X2                       350.51                        357.8246          
+# X1 + X3                       347.603                       354.9176                (Best model from AIC & BIC)
+# X2 + X3                       370.3874                      377.7019
+# X1 + X2 + X3                  348.7273                      357.8705
+
+# Get BIC from AIC 
+AIC(reg, k = log(length(Patient[ , 1])))
+
+# X1
+reg <- lm(Patient[ , 1] ~ Patient[ , 2])
+# AIC 
+AIC(reg)
+# BIC
+BIC(reg)
+
+# X2
+reg <- lm(Patient[ , 1] ~ Patient[ , 3])
+# AIC 
+AIC(reg)
+# BIC
+BIC(reg)
+
+# X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 4])
+# AIC 
+AIC(reg)
+# BIC
+BIC(reg)
+
+# X1 + X2
+reg <- lm(Patient[ , 1] ~ Patient[ , 2] + Patient[ , 3])
+# AIC 
+AIC(reg)
+# BIC
+BIC(reg)
+
+# X1 + X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 2] + Patient[ , 4])
+# AIC 
+AIC(reg)
+# BIC
+BIC(reg)
+
+# X2 + X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 3] + Patient[ , 4])
+# AIC 
+AIC(reg)
+# BIC
+BIC(reg)
+
+# X1 + X2 + X3
+reg <- lm(Patient[ , 1] ~ Patient[ , 2] + Patient[ , 3] + Patient[ , 4])
+# AIC 
+AIC(reg)
+# BIC
+BIC(reg)
+
+
+# Best Model Selection (Useful with Many Variables):
+# Forward Selection: X1, X2, X3, X1 + X2, X1 + X3, X2 + X3, X1 + X2 + X3
+# Backward Selection: X1 + X2 + X3, X2 + X3, X1 + X3, X1 + X2, X3, X2, X1 (Eliminating one at a time)
+library(MASS)
+# Create regression model
+reg <- lm(Patient$Y ~ Patient$X1 + Patient$X2 + Patient$X3)
+# Stepwise regression 
+step <- stepAIC(reg, direction = "both") # direction = c("both", "backward", "forward")
+
+
+# Developing a Model Review:
+# y (Dependent), (x1, x2, x3, x4, x5, x6, x7) (Independent)
+# Fool Model: y = B0 + B1x1 + B2x2 + ... + B7x7 + e
+# Multicolinearity: VIF(reg) > 10 if < 10 keep full model
+# Check cor(matrix) check for high correlation 
+# Remove x's one at a time that have high correlation
+# Check VIF(reg) 
+
+# Variable Selection:
+# StepAIC: Best 3 models by AIC 
+# Selection Criteria:
+# Cp    R^2   SSE   PRESS   BIC   AIC
+# Deciding criteria: Cp
+
+# log(y) = B0 + B1x1 + B2x2 + B4x4 + e
+# MLR:
+# Assumptions: 
+# - Normality: Shapiro Test
+# - Constant Variance: BP Test
+# - Transformation: Scatter plot matrix 
+
+# Explain what the B's mean 
+# log(y) = 2 + 3.5x1 + 7.9x2 + 30x4
+# x1:
+# If all the x's = 0 
+# x2 and x4 remain costant,
+# increase by unit of x1 will increase log by 3.5
+
+# Prediction: yhat 
+# yhat = x1 + x2 + x4
+
+
+# Developing a Model Review:
+# Report:
+#   Description: y = , (x1, ..., xn)
+#   - Interpret x's
+#   - Find the best model
+# 1.)
+#   Variable Selection Methods:
+#     Remove unneccesary variables (names, row numbers, etc.)
+#     Multicollinearity (VIF > 10, < 10 (no multicollinearity))
+#       - cor(data)
+#       - Re-run VIF to validate new model
+#     Full model: y = B0 + B1, ...
+#     Final Condensed Model:
+#       y = B0 + B1x1 + B2x2 + B3x3 + B4x4 + B5x5 + e
+# 2.)
+#   Model Selection:
+#     StepAIC - to get the best models
+#       x1 + x5
+#       x2 + x5
+#       x1 + x2 + x5
+#   Compare critera: R^2, SSE, Cp, PRESS, AIC, BIC (Cp being deciding criteria)
+#   Select final model
+# 3.)
+#   MLR - Assumptions: 
+#     - Transformations (Possible only one variable needs transformations)
+#       summary(reg)
+#     - yhat = ...
+#     - Interpret B's
+#     - Whether all B's are important in the model
+#     - Estimate or predict a y value
+
+# Examples of 3.):
+# Normal probability plot - using the Normal Q-Q plot
+patient.stdres <- rstandard(patient.mod)
+plot(patient.mod)
+qqline(patient.stdres)
+# Or
+qqnorm(patient.stdres)
+qqline(patient.stdres)
+
+# Breusch-Pagan test for constancy of error variance 
+bptest(patient.mod)
+
+# Hypothesis:
+# H0: B1, B2, B3 = 0
+# HA: B1, B2, B3 != 0
+
+# Y-Hat
+yhat <- fitted(patient.mod)
+
+# Obtain the scatter plot matrix and the correlation matrix.
+pairs(patient.data)
+# Or
+plot(patient.data[ , 1:4])
+
+# Obtain a 95 percent prediction interval for the mean handling time for these shipments.
+# Get independent data 
+shipped <- retail.data[ , 2]
+cost <- retail.data[ , 3]
+holiday <- retail.data[ , 4]
+# Prediction values
+pred.ship <- data.frame(shipped = 282000)
+pred.cost <- data.frame(shipped = 7.10)
+pred.holiday <- data.frame(shipped = 0)
+# Multiple regression model
+retail.mod <- lm(retail.data$Labor_Hours ~ retail.data$Cases_Shipped + retail.data$Cost_of_Labor + retail.data$Holiday)
+# Prediction 
+retail.pred.int <- predict(retail.mod, c(pred.ship, pred.cost, pred.holiday), se.fit = T, interval = "prediction", level = 0.95)
+
+# p-value less than .05 means the variable is significant and to reject the null hypothesis
+
+# The Shapiro-Wilk test for normality is available when using the Distribution platform to examine a continuous variable.
+# The null hypothesis for this test is that the data are normally distributed. The Prob < W value listed in the output is the p-value. 
+# If the chosen alpha level is 0.05 and the p-value is less than 0.05, then the null hypothesis that the data are normally distributed is rejected. If the p-value is greater than 0.05, then the null hypothesis is not rejected.
+
+# BPTest: If the p-value becomes "small", the null hypothesis is rejected.99

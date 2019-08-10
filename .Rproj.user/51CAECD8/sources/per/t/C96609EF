@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1554935931868.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2358489709",
+    "id" : "C96609EF",
+    "lastKnownWriteTime" : 1554043464,
+    "last_content_update" : 1554043464,
+    "path" : "~/R/Workspace/mn-water-quality/water-quality.R",
+    "project_path" : "water-quality.R",
+    "properties" : {
+        "cursorPosition" : "15,13",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

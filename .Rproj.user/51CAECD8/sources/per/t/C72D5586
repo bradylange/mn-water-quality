@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1553979926180.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3849617071",
+    "id" : "C72D5586",
+    "lastKnownWriteTime" : 1554935939,
+    "last_content_update" : 1554935939326,
+    "path" : "C:/Users/brady/Downloads/Developing a Model.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "341,76",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
